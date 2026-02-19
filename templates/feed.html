@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feed — {{ title }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #f5f4f0;
+      --surface:  #ffffff;
+      --border:   #e2e0db;
+      --accent:   #1a1a1a;
+      --muted:    #888;
+      --tag-bg:   #f0ede8;
+      --radius:   10px;
+      --font:     'Inter', system-ui, sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--accent);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    header h1 {
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    header nav { display: flex; align-items: center; gap: 20px; }
+
+    header nav a {
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+
+    header nav a:hover { color: var(--accent); }
+
+    header nav .add-btn {
+      background: var(--accent);
+      color: #fff;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+
+    header nav .add-btn:hover { opacity: 0.8; color: #fff; }
+
+    /* ── Main ── */
+    main {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+
+    /* ── Page title / stats ── */
+    .page-header {
+      margin-bottom: 28px;
+    }
+
+    .page-header h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      margin-bottom: 4px;
+    }
+
+    .page-header p {
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center;
+      padding: 72px 24px;
+      color: var(--muted);
+    }
+
+    .empty p { margin-bottom: 16px; font-size: 1rem; }
+
+    .empty a {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    /* ── Feed list ── */
+    .feed-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ── Item card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      transition: border-color 0.15s;
+    }
+
+    .card:hover { border-color: #bbb; }
+
+    /* Blurb — the agreed newsletter text, prominent */
+    .card-blurb {
+      font-size: 0.975rem;
+      line-height: 1.65;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+
+    /* Source URL */
+    .card-url {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-decoration: none;
+      word-break: break-all;
+      margin-bottom: 14px;
+      transition: color 0.15s;
+    }
+
+    .card-url:hover { color: var(--accent); }
+
+    .card-url svg { flex-shrink: 0; }
+
+    /* Meta row: submitter + date */
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .card-meta .tag {
+      font-size: 0.78rem;
+      font-weight: 500;
+      background: var(--tag-bg);
+      padding: 3px 9px;
+      border-radius: 99px;
+      color: #555;
+    }
+
+    .card-meta .date {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* Reason — collapsed/expandable */
+    .card-reason-toggle {
+      background: none;
+      border: none;
+      font-family: var(--font);
+      font-size: 0.78rem;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0;
+      margin-left: auto;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .card-reason-toggle:hover { color: var(--accent); }
+
+    .card-reason {
+      margin-top: 12px;
+      padding: 10px 13px;
+      background: var(--tag-bg);
+      border-radius: 7px;
+      font-size: 0.82rem;
+      color: #555;
+      line-height: 1.55;
+      display: none;
+    }
+
+    .card-reason.open { display: block; }
+
+    /* ── Done state ── */
+    .card.done { opacity: 0.4; }
+    .card.done .card-blurb { text-decoration: line-through; }
+
+    /* ── Done button ── */
+    .done-btn {
+      background: none;
+      border: 1px solid var(--border);
+      font-family: var(--font);
+      font-size: 0.78rem;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 2px 9px;
+      border-radius: 99px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .done-btn:hover { background: var(--tag-bg); color: var(--accent); }
+    .card.done .done-btn { border-color: transparent; }
+
+    /* Markdown inside blurbs */
+    .card-blurb p { margin-bottom: 0.4em; }
+    .card-blurb p:last-child { margin-bottom: 0; }
+    .card-blurb ul, .card-blurb ol { padding-left: 1.3em; margin-bottom: 0.4em; }
+    .card-blurb strong { font-weight: 600; }
+    .card-blurb em { font-style: italic; }
+    .card-blurb a { color: var(--accent); text-underline-offset: 2px; }
+
+    /* ── Refresh notice ── */
+    .refresh-notice {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 32px;
+    }
+
+    @media (max-width: 600px) {
+      header { padding: 12px 16px; }
+      main { padding: 24px 16px 48px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📰 {{ title }}</h1>
+  <nav>
+    <a href="#" onclick="location.reload(); return false;">Refresh</a>
+    <a href="/newsletter">Newsletter →</a>
+    <a href="/" class="add-btn">+ Add item</a>
+  </nav>
+</header>
+
+<main>
+  <div class="page-header">
+    <h2>Newsletter pipeline</h2>
+    <p>
+      {% if count == 0 %}
+        No items yet.
+      {% else %}
+        {{ pending }} pending · {{ count }} total, newest first.
+      {% endif %}
+    </p>
+  </div>
+
+  {% if items %}
+    <div class="feed-list" id="feed-list">
+      {% for item in items %}
+        <article class="card {% if item.done %}done{% endif %}" data-id="{{ item.id }}">
+
+          <!-- Agreed newsletter blurb -->
+          <div class="card-blurb" data-md="{{ item.agreed_text | e }}"></div>
+
+          <!-- Source URL -->
+          <a class="card-url" href="{{ item.url }}" target="_blank" rel="noopener">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            {{ item.url | truncate(80, True, '…') }}
+          </a>
+
+          <!-- Meta + reason toggle -->
+          <div class="card-meta">
+            <span class="tag">{{ item.submitter_name }}</span>
+            <span class="date">
+              {{ item.created_at[:10] }}
+            </span>
+            <button
+              class="card-reason-toggle"
+              onclick="toggleReason(this)"
+              aria-expanded="false"
+            >why added ▾</button>
+            <button
+              class="done-btn"
+              data-id="{{ item.id }}"
+              data-done="{{ 'true' if item.done else 'false' }}"
+              onclick="toggleDone(this)"
+            >{% if item.done %}↩ Undo{% else %}✓ Done{% endif %}</button>
+          </div>
+
+          <!-- Reason (private audit note, hidden by default) -->
+          <div class="card-reason" aria-hidden="true">
+            <strong>Reason added:</strong> {{ item.reason }}
+          </div>
+
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty">
+      <p>Nothing here yet — be the first to add a news item.</p>
+      <a href="/">Add an item</a>
+    </div>
+  {% endif %}
+
+  <p class="refresh-notice">
+    This page shows items as of page load. <a href="#" onclick="location.reload(); return false;">Refresh</a> to see the latest.
+  </p>
+</main>
+
+<script>
+  // Render markdown blurbs
+  document.querySelectorAll('.card-blurb[data-md]').forEach(el => {
+    el.innerHTML = marked.parse(el.dataset.md);
+  });
+
+  function toggleReason(btn) {
+    const card   = btn.closest('.card');
+    const reason = card.querySelector('.card-reason');
+    const open   = reason.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open);
+    btn.textContent = open ? 'why added ▴' : 'why added ▾';
+    reason.setAttribute('aria-hidden', !open);
+  }
+
+  async function toggleDone(btn) {
+    const id      = btn.dataset.id;
+    const newDone = btn.dataset.done !== 'true';
+    await fetch(`/api/done/${id}?done=${newDone}`, { method: 'POST' });
+    const card = btn.closest('.card');
+    card.classList.toggle('done', newDone);
+    btn.dataset.done    = newDone;
+    btn.textContent     = newDone ? '↩ Undo' : '✓ Done';
+  }
+</script>
+
+</body>
+</html>
