@@ -38,6 +38,7 @@ feed naturally in its reply.
 
 import json
 import re
+import time
 import uuid
 import asyncio
 
@@ -76,6 +77,31 @@ UPDATE_KEYWORDS = (
     "update", "edit", "change", "amend", "correct", "fix", "revise",
     "i made a mistake", "wrong", "update my", "edit my", "change my",
 )
+
+# ---------------------------------------------------------------------------
+# Rate limiting (in-memory, no extra dependencies)
+# ---------------------------------------------------------------------------
+
+_rate_limit: dict[str, list] = {}   # { ip: [count, window_start] }
+_RL_MAX    = 20     # max requests per window
+_RL_WINDOW = 60.0   # window length in seconds
+
+
+def _check_rate_limit(ip: str) -> bool:
+    """Return True if the request is within the allowed rate, False if over limit."""
+    now = time.monotonic()
+    if ip not in _rate_limit:
+        _rate_limit[ip] = [1, now]
+        return True
+    count, start = _rate_limit[ip]
+    if now - start > _RL_WINDOW:
+        # Window has expired — start a fresh one
+        _rate_limit[ip] = [1, now]
+        return True
+    if count >= _RL_MAX:
+        return False
+    _rate_limit[ip][0] += 1
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -308,35 +334,21 @@ def feed_page(request: Request) -> HTMLResponse:
 @app.get("/api/new-session")
 def new_session() -> JSONResponse:
     """
-    Create a fresh session and return an initial greeting from the LLM.
-    Called automatically when the chat page loads.
+    Create a fresh session and return the standard opening greeting.
+    The greeting is hardcoded so it's always exactly right and costs no LLM call.
     """
     session_id = str(uuid.uuid4())
-    sessions[session_id] = []
-
-    # Trigger the LLM to produce an opening greeting
-    greeting_prompt = (
-        "A new contributor has just opened the news collector. "
-        "Greet them warmly in one or two sentences and ask for their name. "
-        "Be friendly but brief."
+    greeting = (
+        "Welcome to the newsletter agent! I'm here to help you add your news item. "
+        "If you have no idea how this works, let me know and I'll explain. "
+        "Or, if you do know how it works, just tell me your name and we'll get going."
     )
-    try:
-        response_text, updated_history = llm_chat([], greeting_prompt)
-        # Store the greeting as an assistant message (skip the synthetic user prompt)
-        sessions[session_id] = [{"role": "assistant", "content": response_text}]
-    except Exception as exc:
-        response_text = (
-            "Hi there! Welcome to the news collector. "
-            "I'm here to help you add items to the newsletter pipeline. "
-            "What's your name?"
-        )
-        sessions[session_id] = [{"role": "assistant", "content": response_text}]
-
-    return JSONResponse({"session_id": session_id, "greeting": response_text})
+    sessions[session_id] = [{"role": "assistant", "content": greeting}]
+    return JSONResponse({"session_id": session_id, "greeting": greeting})
 
 
 @app.post("/api/chat")
-def chat_endpoint(body: ChatRequest) -> JSONResponse:
+def chat_endpoint(request: Request, body: ChatRequest) -> JSONResponse:
     """
     Process a user message and return the assistant's response.
 
@@ -347,6 +359,10 @@ def chat_endpoint(body: ChatRequest) -> JSONResponse:
       "saved_item": dict | null # populated if an item was saved this turn
     }
     """
+    client_ip = request.client.host if request.client else "unknown"
+    if not _check_rate_limit(client_ip):
+        raise HTTPException(status_code=429, detail="Too many requests. Please slow down.")
+
     history = _get_or_create_session(body.session_id)
     history = _trim_history(history)
 
@@ -365,16 +381,16 @@ def chat_endpoint(body: ChatRequest) -> JSONResponse:
             f"[SYSTEM NOTE — for assistant only, do not quote verbatim]\n"
             f"{feed_context}"
         )
-    elif _wants_update(user_message):
-        # Try to find a name in the conversation history (the LLM always captures it)
-        contributor_name = _extract_name_from_history(history)
-        if contributor_name:
-            items_context = _build_items_context(contributor_name)
-            effective_message = (
-                f"{user_message}\n\n"
-                f"[SYSTEM NOTE — for assistant only, do not quote verbatim]\n"
-                f"{items_context}"
-            )
+    # Update/edit flow is currently disabled.
+    # elif _wants_update(user_message):
+    #     contributor_name = _extract_name_from_history(history)
+    #     if contributor_name:
+    #         items_context = _build_items_context(contributor_name)
+    #         effective_message = (
+    #             f"{user_message}\n\n"
+    #             f"[SYSTEM NOTE — for assistant only, do not quote verbatim]\n"
+    #             f"{items_context}"
+    #         )
 
     try:
         raw_response, updated_history = llm_chat(history, effective_message)
