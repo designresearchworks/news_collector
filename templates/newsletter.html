@@ -144,6 +144,16 @@
       font-weight: 500;
     }
 
+    /* ── Site footer ── */
+    .site-footer {
+      text-align: center;
+      padding: 32px 24px 28px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .site-footer img { display: inline-block; }
+
     @media (max-width: 600px) {
       header { padding: 12px 16px; }
       main { padding: 24px 16px 48px; }
@@ -157,7 +167,8 @@
   <h1><a href="/" style="color:inherit;text-decoration:none;">📰 {{ title }}</a></h1>
   <nav>
     <a href="/feed">View all entries / mark as completed</a>
-    <a href="/" class="add-btn">+ Add item by chat</a>
+    <a href="/newsletter">View formatted newsletter</a>
+    <a href="/" class="add-btn">+ Add item via chat</a>
   </nav>
 </header>
 
@@ -287,6 +298,11 @@
     }, 2500);
   }
 </script>
+
+
+<footer class="site-footer">
+  <img src="/static/logo.gif" alt="Imagination Lancaster" width="80" height="80" />
+</footer>
 
 </body>
 </html>

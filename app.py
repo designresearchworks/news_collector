@@ -45,6 +45,7 @@ import asyncio
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
@@ -57,6 +58,7 @@ from llm import chat as llm_chat
 # ---------------------------------------------------------------------------
 
 app = FastAPI(title=settings.app_title)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # In-memory session store: { session_id: [{"role": ..., "content": ...}, ...] }
