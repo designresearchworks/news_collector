@@ -6,7 +6,7 @@
   <title>Feed — {{ title }}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -19,7 +19,7 @@
       --muted:    #888;
       --tag-bg:   #f0ede8;
       --radius:   10px;
-      --font:     'Inter', system-ui, sans-serif;
+      --font:     'Work Sans', system-ui, sans-serif;
     }
 
     body {
@@ -27,12 +27,13 @@
       background: var(--bg);
       color: var(--accent);
       min-height: 100vh;
+      -webkit-text-size-adjust: 100%;
     }
 
     /* ── Header ── */
     header {
       background: var(--surface);
-      border-bottom: 1px solid var(--border);
+      border-bottom: 3px solid #eafa53;
       padding: 14px 24px;
       display: flex;
       align-items: center;
@@ -64,7 +65,7 @@
       background: var(--accent);
       color: #fff;
       padding: 7px 14px;
-      border-radius: 8px;
+      border-radius: 999px;
       font-size: 0.85rem;
       font-weight: 500;
       text-decoration: none;
@@ -78,7 +79,7 @@
       color: var(--accent);
       background: transparent;
       padding: 7px 14px;
-      border-radius: 8px;
+      border-radius: 999px;
       font-size: 0.85rem;
       font-weight: 500;
       text-decoration: none;
@@ -272,7 +273,9 @@
     .site-footer img { display: inline-block; }
 
     @media (max-width: 600px) {
-      header { padding: 12px 16px; }
+      header { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+      header nav { width: 100%; overflow-x: auto; gap: 12px; padding-bottom: 2px; }
+      header nav a { white-space: nowrap; font-size: 0.8rem; }
       main { padding: 24px 16px 48px; }
     }
   </style>

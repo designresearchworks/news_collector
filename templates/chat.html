@@ -6,7 +6,7 @@
   <title>{{ title }}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -25,7 +25,7 @@
       --green:       #2d7d46;
       --green-bg:    #edf7f0;
       --radius:      12px;
-      --font:        'Inter', system-ui, sans-serif;
+      --font:        'Work Sans', system-ui, sans-serif;
     }
 
     html, body { height: 100%; }
@@ -37,12 +37,13 @@
       flex-direction: column;
       height: 100vh;
       overflow: hidden;
+      -webkit-text-size-adjust: 100%;
     }
 
     /* ── Header ── */
     header {
       background: var(--surface);
-      border-bottom: 1px solid var(--border);
+      border-bottom: 3px solid #eafa53;
       padding: 14px 24px;
       display: flex;
       align-items: center;
@@ -73,7 +74,7 @@
       background: var(--accent);
       color: #fff;
       padding: 7px 14px;
-      border-radius: 8px;
+      border-radius: 999px;
       font-size: 0.85rem;
       font-weight: 500;
       text-decoration: none;
@@ -87,7 +88,7 @@
       color: var(--accent);
       background: transparent;
       padding: 7px 14px;
-      border-radius: 8px;
+      border-radius: 999px;
       font-size: 0.85rem;
       font-weight: 500;
       text-decoration: none;
@@ -269,11 +270,14 @@
     #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 
     @media (max-width: 600px) {
-      header { padding: 12px 16px; }
+      header { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+      header nav { width: 100%; overflow-x: auto; gap: 12px; padding-bottom: 2px; }
+      header nav a { white-space: nowrap; font-size: 0.8rem; }
       #messages { padding: 16px 0; }
       .message-row { padding: 0 12px; }
       #input-area { padding: 12px 16px; }
       #save-banner { margin: 0 12px; }
+      #user-input { font-size: 16px; }
     }
   </style>
 </head>

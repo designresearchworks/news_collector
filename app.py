@@ -383,7 +383,7 @@ def chat_endpoint(request: Request, body: ChatRequest) -> JSONResponse:
       "saved_item": dict | null # populated if an item was saved this turn
     }
     """
-    client_ip = request.client.host if request.client else "unknown"
+    client_ip = request.headers.get("X-Forwarded-For", request.client.host if request.client else "unknown").split(",")[0].strip()
     if not _check_rate_limit(client_ip):
         raise HTTPException(status_code=429, detail="Too many requests. Please slow down.")
 
