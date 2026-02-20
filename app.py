@@ -50,7 +50,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from config import settings
-from db import get_feed, get_item_count, get_items_by_name, init_db, mark_done, save_news_item, update_news_item
+from db import delete_news_item, get_feed, get_item_count, get_items_by_name, init_db, mark_done, save_news_item, update_news_item
 from llm import chat as llm_chat
 
 # ---------------------------------------------------------------------------
@@ -456,6 +456,13 @@ def set_done(item_id: int, done: bool = True) -> JSONResponse:
     """Toggle the done flag on a news item. Pass ?done=false to undo."""
     mark_done(item_id, done)
     return JSONResponse({"ok": True, "id": item_id, "done": done})
+
+
+@app.delete("/api/item/{item_id}")
+def delete_item(item_id: int) -> JSONResponse:
+    """Permanently delete a news item."""
+    delete_news_item(item_id)
+    return JSONResponse({"ok": True, "id": item_id})
 
 
 @app.get("/newsletter", response_class=HTMLResponse)

@@ -88,6 +88,85 @@
 
     header nav .add-btn-alt:hover { background: var(--accent); color: #fff; }
 
+    /* ── Page header row ── */
+    .page-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .page-pill-btn {
+      display: inline-block;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: var(--surface);
+      padding: 7px 16px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: border-color 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+
+    .page-pill-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Hamburger ── */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      flex-shrink: 0;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 22px; height: 2px;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: 0.2s;
+    }
+
+    /* ── Mobile menu dropdown ── */
+    #mobile-menu {
+      display: none;
+      flex-direction: column;
+      gap: 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 51px;
+      z-index: 9;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    #mobile-menu.open { display: flex; }
+
+    #mobile-menu a {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--accent);
+      text-decoration: none;
+      padding: 13px 20px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    #mobile-menu a:last-child { border-bottom: none; }
+    #mobile-menu a:hover { background: var(--bg); }
+
+    @media (max-width: 768px) {
+      header nav { display: none; }
+      .hamburger { display: flex; }
+    }
+
     /* ── Main ── */
     main {
       max-width: 780px;
@@ -227,24 +306,43 @@
     .card-reason.open { display: block; }
 
     /* ── Done state ── */
-    .card.done { opacity: 0.4; }
-    .card.done .card-blurb { text-decoration: line-through; }
+    .card.done .card-blurb { text-decoration: line-through; color: var(--muted); }
+    .card.done .card-url { opacity: 0.4; }
+    .card.done .card-meta .tag,
+    .card.done .card-meta .date { opacity: 0.4; }
+    .card.done .card-reason-toggle { opacity: 0.4; }
 
-    /* ── Done button ── */
-    .done-btn {
+    /* ── Card action buttons (done, undo, delete) — shared base style ── */
+    .done-btn, .delete-btn {
       background: none;
       border: 1px solid var(--border);
       font-family: var(--font);
       font-size: 0.78rem;
-      color: var(--muted);
       cursor: pointer;
       padding: 2px 9px;
       border-radius: 99px;
-      transition: background 0.15s, color 0.15s;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
 
+    /* Done button — active state */
+    .done-btn { color: var(--muted); }
     .done-btn:hover { background: var(--tag-bg); color: var(--accent); }
-    .card.done .done-btn { border-color: transparent; }
+
+    /* Delete button — disabled by default, enabled when card is done */
+    .delete-btn:disabled {
+      color: var(--border);
+      border-color: var(--border);
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .delete-btn:not(:disabled) {
+      color: var(--muted);
+      border-color: var(--border);
+      cursor: pointer;
+    }
+
+    .delete-btn:not(:disabled):hover { background: #fdf2f2; color: #c0392b; border-color: #c0392b; }
 
     /* Markdown inside blurbs */
     .card-blurb p { margin-bottom: 0.4em; }
@@ -273,9 +371,7 @@
     .site-footer img { display: inline-block; }
 
     @media (max-width: 600px) {
-      header { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
-      header nav { width: 100%; overflow-x: auto; gap: 12px; padding-bottom: 2px; }
-      header nav a { white-space: nowrap; font-size: 0.8rem; }
+      header { padding: 12px 16px; }
       main { padding: 24px 16px 48px; }
     }
   </style>
@@ -285,23 +381,36 @@
 <header>
   <h1><a href="/" style="color:inherit;text-decoration:none;">📰 {{ title }}</a></h1>
   <nav>
-    <a href="/feed">View all entries / mark as completed</a>
-    <a href="/newsletter">View formatted newsletter</a>
-    <a href="/add-manual" class="add-btn-alt">+ Add item manually</a>
-    <a href="/" class="add-btn">+ Add item via chat</a>
+    <a href="/feed">View</a>
+    <a href="/add-manual" class="add-btn-alt">+ manually</a>
+    <a href="/" class="add-btn">+ by chat</a>
   </nav>
+  <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
 </header>
+
+<div id="mobile-menu">
+  <a href="/feed">View</a>
+  <a href="/add-manual">+ manually</a>
+  <a href="/">+ by chat</a>
+</div>
 
 <main>
   <div class="page-header">
-    <h2>Newsletter pipeline</h2>
-    <p>
-      {% if count == 0 %}
-        No items yet.
-      {% else %}
-        {{ pending }} pending · {{ count }} total, newest first.
-      {% endif %}
-    </p>
+    <div class="page-header-row">
+      <div>
+        <h2>Newsletter pipeline</h2>
+        <p>
+          {% if count == 0 %}
+            No items yet.
+          {% else %}
+            {{ pending }} pending · {{ count }} total, newest first.
+          {% endif %}
+        </p>
+      </div>
+      <a href="/newsletter" class="page-pill-btn">View newsletter →</a>
+    </div>
   </div>
 
   {% if items %}
@@ -337,6 +446,12 @@
               data-done="{{ 'true' if item.done else 'false' }}"
               onclick="toggleDone(this)"
             >{% if item.done %}↩ Undo{% else %}✓ Done{% endif %}</button>
+            <button
+              class="delete-btn"
+              data-id="{{ item.id }}"
+              onclick="deleteItem(this)"
+              {% if not item.done %}disabled{% endif %}
+            >🗑 Delete</button>
           </div>
 
           <!-- Reason (private audit note, hidden by default) -->
@@ -378,11 +493,37 @@
     const id      = btn.dataset.id;
     const newDone = btn.dataset.done !== 'true';
     await fetch(`/api/done/${id}?done=${newDone}`, { method: 'POST' });
-    const card = btn.closest('.card');
+    const card   = btn.closest('.card');
     card.classList.toggle('done', newDone);
-    btn.dataset.done    = newDone;
-    btn.textContent     = newDone ? '↩ Undo' : '✓ Done';
+    btn.dataset.done = newDone;
+    btn.textContent  = newDone ? '↩ Undo' : '✓ Done';
+    const delBtn = card.querySelector('.delete-btn');
+    delBtn.disabled  = !newDone;
   }
+
+  async function deleteItem(btn) {
+    if (btn.disabled) return;
+    if (!confirm('Permanently delete this item? This cannot be undone.')) return;
+    const id = btn.dataset.id;
+    await fetch(`/api/item/${id}`, { method: 'DELETE' });
+    btn.closest('.card').remove();
+  }
+
+  // ─── Hamburger ────────────────────────────────────────────────────────────
+  const hamburger  = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobile-menu');
+  hamburger.addEventListener('click', () => {
+    const open = mobileMenu.classList.toggle('open');
+    hamburger.setAttribute('aria-expanded', open);
+  });
+  document.addEventListener('click', (e) => {
+    if (mobileMenu.classList.contains('open') &&
+        !hamburger.contains(e.target) &&
+        !mobileMenu.contains(e.target)) {
+      mobileMenu.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', false);
+    }
+  });
 </script>
 
 

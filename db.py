@@ -139,6 +139,13 @@ def get_feed(limit: int = 50, include_done: bool = True) -> list[dict]:
         return [dict(row) for row in rows]
 
 
+def delete_news_item(item_id: int) -> None:
+    """Permanently delete a news item by ID."""
+    with get_connection() as conn:
+        conn.execute("DELETE FROM news_items WHERE id = ?", (item_id,))
+        conn.commit()
+
+
 def get_item_count() -> int:
     """Return the total number of saved news items."""
     with get_connection() as conn:

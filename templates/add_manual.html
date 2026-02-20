@@ -87,6 +87,59 @@
 
     header nav .add-btn-alt:hover { background: var(--accent); color: #fff; }
 
+    /* ── Hamburger ── */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      flex-shrink: 0;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 22px; height: 2px;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: 0.2s;
+    }
+
+    /* ── Mobile menu dropdown ── */
+    #mobile-menu {
+      display: none;
+      flex-direction: column;
+      gap: 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 51px;
+      z-index: 9;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    #mobile-menu.open { display: flex; }
+
+    #mobile-menu a {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--accent);
+      text-decoration: none;
+      padding: 13px 20px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    #mobile-menu a:last-child { border-bottom: none; }
+    #mobile-menu a:hover { background: var(--bg); }
+
+    @media (max-width: 768px) {
+      header nav { display: none; }
+      .hamburger { display: flex; }
+    }
+
     /* ── Main ── */
     main {
       max-width: 620px;
@@ -238,9 +291,7 @@
     .site-footer img { display: inline-block; }
 
     @media (max-width: 600px) {
-      header { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
-      header nav { width: 100%; overflow-x: auto; gap: 12px; padding-bottom: 2px; }
-      header nav a { white-space: nowrap; font-size: 0.8rem; }
+      header { padding: 12px 16px; }
       main { padding: 28px 16px 48px; }
       .form-card { padding: 20px 18px; }
     }
@@ -251,12 +302,20 @@
 <header>
   <h1><a href="/" style="color:inherit;text-decoration:none;">📰 {{ title }}</a></h1>
   <nav>
-    <a href="/feed">View all entries / mark as completed</a>
-    <a href="/newsletter">View formatted newsletter</a>
-    <a href="/" class="add-btn-alt">+ Add item via chat</a>
-    <a href="/add-manual" class="add-btn">+ Add item manually</a>
+    <a href="/feed">View</a>
+    <a href="/" class="add-btn-alt">+ by chat</a>
+    <a href="/add-manual" class="add-btn">+ manually</a>
   </nav>
+  <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
 </header>
+
+<div id="mobile-menu">
+  <a href="/feed">View</a>
+  <a href="/add-manual">+ manually</a>
+  <a href="/">+ by chat</a>
+</div>
 
 <main>
   <div class="page-header">
@@ -421,6 +480,22 @@
       err.textContent = '';
       err.classList.remove('visible');
     });
+  });
+
+  // ─── Hamburger ────────────────────────────────────────────────────────────
+  const hamburger  = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobile-menu');
+  hamburger.addEventListener('click', () => {
+    const open = mobileMenu.classList.toggle('open');
+    hamburger.setAttribute('aria-expanded', open);
+  });
+  document.addEventListener('click', (e) => {
+    if (mobileMenu.classList.contains('open') &&
+        !hamburger.contains(e.target) &&
+        !mobileMenu.contains(e.target)) {
+      mobileMenu.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', false);
+    }
   });
 </script>
 
