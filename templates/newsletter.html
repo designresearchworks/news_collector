@@ -67,6 +67,20 @@
 
     header nav .add-btn:hover { opacity: 0.8; color: #fff; }
 
+    header nav .add-btn-alt {
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      background: transparent;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    header nav .add-btn-alt:hover { background: var(--accent); color: #fff; }
+
     /* ── Main ── */
     main {
       max-width: 680px;
@@ -116,8 +130,6 @@
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 32px 36px;
-      outline: none;
-      cursor: text;
       /* Prevent the app's CSS reset leaking into the copy zone content */
       line-height: normal;
     }
@@ -168,6 +180,7 @@
   <nav>
     <a href="/feed">View all entries / mark as completed</a>
     <a href="/newsletter">View formatted newsletter</a>
+    <a href="/add-manual" class="add-btn-alt">+ Add item manually</a>
     <a href="/" class="add-btn">+ Add item via chat</a>
   </nav>
 </header>
@@ -189,7 +202,7 @@
       <button class="select-btn" id="select-btn" onclick="selectAll()">Select all</button>
     </div>
 
-    <div id="copy-zone" contenteditable="true">
+    <div id="copy-zone">
       <!--
         Each item is built by JS below with fully inline styles so the HTML
         survives a paste into Outlook (which strips class-based CSS).

@@ -249,6 +249,20 @@ def _parse_update_tag(response_text: str) -> tuple[str, dict | None]:
     return cleaned, updated
 
 
+def _strip_dashes(text: str) -> str:
+    """
+    Remove em dashes and en-dashes used as em dashes from model output.
+    Replaces ' — ' and ' – ' (spaced) with ', ' and unspaced variants with '-'.
+    """
+    # Spaced em dash → comma-space (reads most naturally in running prose)
+    text = re.sub(r'\s*—\s*', ', ', text)
+    # Spaced en dash used as a clause separator → comma-space
+    text = re.sub(r'\s*–\s*', ', ', text)
+    # Clean up any double commas that result (e.g. ", ,")
+    text = re.sub(r',\s*,', ',', text)
+    return text
+
+
 def _parse_save_tag(response_text: str) -> tuple[str, dict | None]:
     """
     Look for a <SAVE_ITEM>...</SAVE_ITEM> block in the LLM response.
@@ -298,6 +312,14 @@ def _parse_save_tag(response_text: str) -> tuple[str, dict | None]:
 class ChatRequest(BaseModel):
     session_id: str
     message: str
+
+
+class ManualItemRequest(BaseModel):
+    name: str
+    url: str
+    headline: str
+    entry: str
+    reason: str
 
 
 # ---------------------------------------------------------------------------
@@ -402,6 +424,9 @@ def chat_endpoint(request: Request, body: ChatRequest) -> JSONResponse:
             detail=f"LLM request failed: {exc}",
         )
 
+    # Strip em/en dashes before anything else touches the response
+    raw_response = _strip_dashes(raw_response)
+
     # Parse and strip any <SAVE_ITEM> or <UPDATE_ITEM> tag, writing to DB if present
     cleaned_response, saved_item = _parse_save_tag(raw_response)
     if saved_item is None:
@@ -441,6 +466,49 @@ def newsletter_page(request: Request) -> HTMLResponse:
         "newsletter.html",
         {"request": request, "title": settings.app_title, "items": items},
     )
+
+
+@app.get("/add-manual", response_class=HTMLResponse)
+def add_manual_page(request: Request) -> HTMLResponse:
+    """Manual item submission form."""
+    return templates.TemplateResponse(
+        "add_manual.html",
+        {"request": request, "title": settings.app_title},
+    )
+
+
+@app.post("/api/add-manual")
+def add_manual(body: ManualItemRequest) -> JSONResponse:
+    """
+    Save a manually submitted news item.
+
+    Constructs agreed_text as: **{headline}** {entry}
+    so the bold-first-sentence convention is preserved across both submission routes.
+    """
+    # Validate — all fields required
+    errors = {}
+    if not body.name.strip():
+        errors["name"] = "Please enter your name."
+    if not body.url.strip():
+        errors["url"] = "Please enter a URL."
+    if not body.headline.strip():
+        errors["headline"] = "Please enter a headline."
+    if not body.entry.strip():
+        errors["entry"] = "Please enter the entry text."
+    if not body.reason.strip():
+        errors["reason"] = "Please enter a reason for adding this item."
+    if errors:
+        raise HTTPException(status_code=422, detail=errors)
+
+    agreed_text = f"**{body.headline.strip()}** {body.entry.strip()}"
+
+    saved = save_news_item(
+        submitter_name=body.name.strip(),
+        url=body.url.strip(),
+        reason=body.reason.strip(),
+        agreed_text=agreed_text,
+    )
+    return JSONResponse({"ok": True, "saved_item": saved})
 
 
 # ---------------------------------------------------------------------------

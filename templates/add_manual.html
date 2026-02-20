@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add item manually — {{ title }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #f5f4f0;
+      --surface:  #ffffff;
+      --border:   #e2e0db;
+      --accent:   #1a1a1a;
+      --muted:    #888;
+      --tag-bg:   #f0ede8;
+      --radius:   10px;
+      --green:    #2d7d46;
+      --green-bg: #edf7f0;
+      --red:      #c0392b;
+      --red-bg:   #fdf2f2;
+      --font:     'Inter', system-ui, sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--accent);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    header h1 { font-size: 1rem; font-weight: 600; letter-spacing: -0.02em; }
+
+    header nav { display: flex; align-items: center; gap: 20px; }
+
+    header nav a {
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+
+    header nav a:hover { color: var(--accent); }
+
+    header nav .add-btn {
+      background: var(--accent);
+      color: #fff;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+
+    header nav .add-btn:hover { opacity: 0.8; color: #fff; }
+
+    header nav .add-btn-alt {
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      background: transparent;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    header nav .add-btn-alt:hover { background: var(--accent); color: #fff; }
+
+    /* ── Main ── */
+    main {
+      max-width: 620px;
+      margin: 0 auto;
+      padding: 40px 24px 64px;
+    }
+
+    .page-header {
+      margin-bottom: 32px;
+    }
+
+    .page-header h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      margin-bottom: 6px;
+    }
+
+    .page-header p {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── Form ── */
+    .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+    }
+
+    .field {
+      margin-bottom: 22px;
+    }
+
+    .field:last-of-type {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: var(--accent);
+    }
+
+    label .hint {
+      font-weight: 400;
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-left: 6px;
+    }
+
+    input[type="text"],
+    input[type="url"],
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-family: var(--font);
+      font-size: 0.925rem;
+      line-height: 1.5;
+      color: var(--accent);
+      background: var(--bg);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="text"]:focus,
+    input[type="url"]:focus,
+    textarea:focus { border-color: var(--accent); }
+
+    input::placeholder,
+    textarea::placeholder { color: var(--muted); }
+
+    textarea { resize: vertical; min-height: 90px; }
+
+    .field-error {
+      font-size: 0.78rem;
+      color: var(--red);
+      margin-top: 5px;
+      display: none;
+    }
+
+    .field-error.visible { display: block; }
+
+    input.invalid,
+    textarea.invalid { border-color: var(--red); background: var(--red-bg); }
+
+    /* ── Submit button ── */
+    .submit-row {
+      margin-top: 28px;
+    }
+
+    .submit-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 11px 28px;
+      font-family: var(--font);
+      font-size: 0.925rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .submit-btn:disabled { opacity: 0.4; cursor: default; }
+    .submit-btn:hover:not(:disabled) { opacity: 0.85; }
+
+    /* ── Banners ── */
+    .banner {
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      font-size: 0.875rem;
+      margin-bottom: 24px;
+      display: none;
+    }
+
+    .banner.visible { display: block; }
+
+    .banner.success {
+      background: var(--green-bg);
+      border: 1px solid #b7dfc6;
+      color: var(--green);
+    }
+
+    .banner.error {
+      background: var(--red-bg);
+      border: 1px solid #f5c6c2;
+      color: var(--red);
+    }
+
+    .banner strong { font-weight: 600; }
+
+    .banner a { color: inherit; text-underline-offset: 2px; }
+
+    /* ── Site footer ── */
+    .site-footer {
+      text-align: center;
+      padding: 32px 24px 28px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .site-footer img { display: inline-block; }
+
+    @media (max-width: 600px) {
+      header { padding: 12px 16px; }
+      main { padding: 28px 16px 48px; }
+      .form-card { padding: 20px 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1><a href="/" style="color:inherit;text-decoration:none;">📰 {{ title }}</a></h1>
+  <nav>
+    <a href="/feed">View all entries / mark as completed</a>
+    <a href="/newsletter">View formatted newsletter</a>
+    <a href="/" class="add-btn-alt">+ Add item via chat</a>
+    <a href="/add-manual" class="add-btn">+ Add item manually</a>
+  </nav>
+</header>
+
+<main>
+  <div class="page-header">
+    <h2>Add item manually</h2>
+    <p>Fill in the fields below to add a news item directly without going through the chat. The headline will appear bold at the start of your entry in the newsletter.</p>
+  </div>
+
+  <div id="success-banner" class="banner success">
+    ✅ <strong>Saved!</strong> Your item has been added to the newsletter pipeline. <a href="/feed">View all entries →</a>
+  </div>
+
+  <div id="error-banner" class="banner error">
+    ⚠️ <strong>Something went wrong.</strong> <span id="error-detail">Please try again.</span>
+  </div>
+
+  <div class="form-card">
+    <form id="manual-form" novalidate>
+
+      <div class="field">
+        <label for="f-name">Your name</label>
+        <input type="text" id="f-name" name="name" placeholder="e.g. Sarah Jones" autocomplete="name" />
+        <p class="field-error" id="err-name"></p>
+      </div>
+
+      <div class="field">
+        <label for="f-url">URL <span class="hint">Link to the source article or content</span></label>
+        <input type="url" id="f-url" name="url" placeholder="https://…" />
+        <p class="field-error" id="err-url"></p>
+      </div>
+
+      <div class="field">
+        <label for="f-headline">Headline <span class="hint">This appears bold at the start — make it a punchy opener</span></label>
+        <input type="text" id="f-headline" name="headline" placeholder="e.g. A new study finds that…" />
+        <p class="field-error" id="err-headline"></p>
+      </div>
+
+      <div class="field">
+        <label for="f-entry">Entry <span class="hint">The rest of the newsletter copy (2–3 sentences)</span></label>
+        <textarea id="f-entry" name="entry" placeholder="Continue the story here…"></textarea>
+        <p class="field-error" id="err-entry"></p>
+      </div>
+
+      <div class="field">
+        <label for="f-reason">Reason for adding <span class="hint">Internal only — why is this worth including?</span></label>
+        <textarea id="f-reason" name="reason" placeholder="e.g. Relevant to our ongoing project on…"></textarea>
+        <p class="field-error" id="err-reason"></p>
+      </div>
+
+      <div class="submit-row">
+        <button type="submit" class="submit-btn" id="submit-btn">Save item</button>
+      </div>
+
+    </form>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <img src="/static/logo.gif" alt="Imagination Lancaster" width="80" height="80" />
+</footer>
+
+<script>
+  const form        = document.getElementById('manual-form');
+  const submitBtn   = document.getElementById('submit-btn');
+  const successBanner = document.getElementById('success-banner');
+  const errorBanner   = document.getElementById('error-banner');
+  const errorDetail   = document.getElementById('error-detail');
+
+  const fields = ['name', 'url', 'headline', 'entry', 'reason'];
+
+  function clearErrors() {
+    fields.forEach(f => {
+      document.getElementById(`f-${f}`).classList.remove('invalid');
+      const err = document.getElementById(`err-${f}`);
+      err.textContent = '';
+      err.classList.remove('visible');
+    });
+    errorBanner.classList.remove('visible');
+    successBanner.classList.remove('visible');
+  }
+
+  function showFieldErrors(errors) {
+    // errors is an object like { name: "Please enter your name.", ... }
+    // or an array of [{loc, msg}] from FastAPI 422
+    if (Array.isArray(errors)) {
+      errors.forEach(e => {
+        const field = e.loc && e.loc[e.loc.length - 1];
+        if (field && document.getElementById(`f-${field}`)) {
+          document.getElementById(`f-${field}`).classList.add('invalid');
+          const err = document.getElementById(`err-${field}`);
+          err.textContent = e.msg;
+          err.classList.add('visible');
+        }
+      });
+    } else {
+      Object.entries(errors).forEach(([field, msg]) => {
+        if (document.getElementById(`f-${field}`)) {
+          document.getElementById(`f-${field}`).classList.add('invalid');
+          const err = document.getElementById(`err-${field}`);
+          err.textContent = msg;
+          err.classList.add('visible');
+        }
+      });
+    }
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrors();
+
+    const body = {
+      name:     document.getElementById('f-name').value,
+      url:      document.getElementById('f-url').value,
+      headline: document.getElementById('f-headline').value,
+      entry:    document.getElementById('f-entry').value,
+      reason:   document.getElementById('f-reason').value,
+    };
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving…';
+
+    try {
+      const res = await fetch('/api/add-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        successBanner.classList.add('visible');
+        form.reset();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (res.status === 422) {
+        // Validation errors — could be our dict or FastAPI's array format
+        const detail = data.detail;
+        if (detail && typeof detail === 'object') {
+          showFieldErrors(detail);
+        } else {
+          errorDetail.textContent = typeof detail === 'string' ? detail : 'Please check the form and try again.';
+          errorBanner.classList.add('visible');
+        }
+      } else {
+        errorDetail.textContent = data.detail || 'Server error. Please try again.';
+        errorBanner.classList.add('visible');
+      }
+    } catch (err) {
+      errorDetail.textContent = 'Could not reach the server. Please try again.';
+      errorBanner.classList.add('visible');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Save item';
+    }
+  });
+
+  // Clear field error on input
+  fields.forEach(f => {
+    const el = document.getElementById(`f-${f}`);
+    el.addEventListener('input', () => {
+      el.classList.remove('invalid');
+      const err = document.getElementById(`err-${f}`);
+      err.textContent = '';
+      err.classList.remove('visible');
+    });
+  });
+</script>
+
+</body>
+</html>
