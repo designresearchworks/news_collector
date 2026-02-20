@@ -505,7 +505,7 @@
     if (btn.disabled) return;
     if (!confirm('Permanently delete this item? This cannot be undone.')) return;
     const id = btn.dataset.id;
-    const res = await fetch(`/api/item/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/item/${id}/delete`, { method: 'POST' });
     if (res.ok) {
       btn.closest('.card').remove();
     } else {

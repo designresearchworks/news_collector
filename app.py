@@ -465,6 +465,13 @@ def delete_item(item_id: int) -> JSONResponse:
     return JSONResponse({"ok": True, "id": item_id})
 
 
+@app.post("/api/item/{item_id}/delete")
+def delete_item_post(item_id: int) -> JSONResponse:
+    """Delete a news item via POST (proxy-safe alternative to DELETE)."""
+    delete_news_item(item_id)
+    return JSONResponse({"ok": True, "id": item_id})
+
+
 @app.get("/newsletter", response_class=HTMLResponse)
 def newsletter_page(request: Request) -> HTMLResponse:
     """Formatted newsletter view — pending (not-done) items only."""
